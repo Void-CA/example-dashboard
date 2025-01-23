@@ -1,5 +1,9 @@
 import pandas as pd
 import streamlit as st
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+plt.style.use("dark_background")
 
 # Cargar el dataset
 df = pd.read_csv("data/invoices_dataset.csv")
@@ -44,17 +48,87 @@ with metrics_columns[3]:
 
 import altair as alt
 
-# Gráfico de ingresos por fecha
-revenue_chart = (
-    alt.Chart(filtered_data)
-    .mark_line()
-    .encode(
-        x="Date:T",
-        y="Total:Q",
-        tooltip=["Date", "Total"]
-    )
-    .interactive()
-)
+graph_columns = st.columns(3)
 
-st.subheader("Ingresos por Fecha")
-st.altair_chart(revenue_chart, use_container_width=True)
+with graph_columns[0]:
+
+    # Gráfico de ingresos por fecha
+    revenue_chart = (
+        alt.Chart(filtered_data)
+        .mark_line()
+        .encode(
+            x="Date:T",
+            y="Total:Q",
+            tooltip=["Date", "Total"]
+        )
+        .interactive()
+    )
+    st.subheader("Ingresos por Fecha")
+    st.altair_chart(revenue_chart, use_container_width=True)
+
+    # Calcular ingresos por método de pago
+    payment_distribution = df.groupby("PaymentMethod")["Total"].sum()
+
+    # Boceto del gráfico
+    st.subheader("Distribución de Ingresos por Métodos de Pago")
+    fig, ax = plt.subplots()
+    ax.pie(payment_distribution, labels=payment_distribution.index, autopct="%1.1f%%", startangle=140, colors=["#FF9999", "#66B2FF", "#99FF99", "#FFCC99"])
+    ax.set_title("Métodos de Pago")
+    st.pyplot(fig)
+
+    
+
+with graph_columns[1]:
+    # Calcular facturas por cliente
+    top_customers = df["CustomerName"].value_counts().head(10)
+    # Boceto del gráfico
+    st.subheader("Top 10 Clientes con Más Facturas")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.barh(top_customers.index, top_customers.values, color="coral")
+    ax.set_title("Top Clientes por Número de Facturas", fontsize=16)
+    ax.set_xlabel("Número de Facturas", fontsize=12)
+    ax.set_ylabel("Cliente", fontsize=12)
+    plt.gca().invert_yaxis()  # Invertir el orden para mostrar el más alto primero
+    st.pyplot(fig)
+
+
+    # Calcular ingresos por mes
+    monthly_revenue = df.groupby("Date")["Total"].sum().reset_index()
+
+    # Boceto del gráfico
+    st.subheader("Ingresos Totales por Mes")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.bar(monthly_revenue["Date"].astype(str), monthly_revenue["Total"], color="skyblue")
+    ax.set_title("Ingresos Totales por Mes", fontsize=16)
+    ax.set_xlabel("Mes", fontsize=12)
+    ax.set_ylabel("Ingresos Totales ($)", fontsize=12)
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+
+with graph_columns[2]:
+    
+    # Calcular ingresos por producto/servicio
+    product_revenue = df.groupby("Product")["Total"].sum().sort_values(ascending=False)
+
+    # Boceto del gráfico
+    st.subheader("Ingresos por Producto/Servicio")
+    fig, ax = plt.subplots(figsize=(10, 6))
+    ax.bar(product_revenue.index, product_revenue.values, color="lightgreen")
+    ax.set_title("Ingresos por Producto/Servicio", fontsize=16)
+    ax.set_xlabel("Producto/Servicio", fontsize=12)
+    ax.set_ylabel("Ingresos Totales ($)", fontsize=12)
+    plt.xticks(rotation=45)
+    st.pyplot(fig)
+
+
+    # Contar facturas por estado
+    invoice_status = df["Status"].value_counts()
+
+    # Boceto del gráfico
+    st.subheader("Estado de Facturas")
+    fig, ax = plt.subplots(figsize=(8, 5))
+    ax.barh(invoice_status.index, invoice_status.values, color="gold")
+    ax.set_title("Facturas por Estado", fontsize=16)
+    ax.set_xlabel("Número de Facturas", fontsize=12)
+    ax.set_ylabel("Estado", fontsize=12)
+    st.pyplot(fig)

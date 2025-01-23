@@ -23,16 +23,24 @@ if start_date > end_date:
 filtered_data = df[(df["Date"] >= pd.to_datetime(start_date)) & (df["Date"] <= pd.to_datetime(end_date))]
 filtered_data = filtered_data[filtered_data["PaymentMethod"].isin(payment_method)]
 
-# Mostrar los datos filtrados
-st.subheader(f"Facturas entre {start_date} y {end_date}")
-st.dataframe(filtered_data)
-
 # Resumen de métricas
 st.subheader("Resumen de métricas")
+metrics_columns = st.columns(4)
 total_revenue = filtered_data["Total"].sum()
 num_invoices = filtered_data.shape[0]
-st.metric(label="Total Ingresos ($)", value=f"{total_revenue:,.2f}")
-st.metric(label="Número de Facturas", value=num_invoices)
+
+with metrics_columns[0]:
+    st.metric(label="Total Ingresos ($)", value=f"{total_revenue:,.2f}")
+    st.metric(label="Ingresos Mínimos ($)", value=f"{filtered_data['Total'].min():,.2f}")
+with metrics_columns[1]:
+    st.metric(label="Ingresos Máximos ($)", value=f"{filtered_data['Total'].max():,.2f}")
+    st.metric(label="Ingresos Promedio ($)", value=f"{total_revenue / num_invoices:,.2f}")
+with metrics_columns[2]:
+    st.metric(label="Número de Productos", value=filtered_data["Product"].nunique())
+    st.metric(label="Número de Clientes", value=filtered_data["CustomerID"].nunique())
+with metrics_columns[3]:
+    st.metric(label="Número de Facturas", value=num_invoices)
+    st.metric(label="Facturas pagadas (%)", value=f"{(filtered_data['Status'].value_counts(normalize=True).get('Paid', 0) * 100):.2f}%")
 
 import altair as alt
 

@@ -1,0 +1,13 @@
+body {
+    font-family: Arial, sans-serif;
+}
+
+h1 {
+    color: #4CAF50;
+}
+
+.graph-container {
+    padding: 20px;
+    border: 1px solid #ddd;
+    margin: 20px;
+}
